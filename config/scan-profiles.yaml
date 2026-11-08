@@ -1,0 +1,44 @@
+profiles:
+  free:
+    name: "Free Scan"
+    description: "Basic security assessment of apex hostname: headers, SSL/TLS, and critical exposed files."
+    subdomains: false
+    port_scan: false
+    custom_checks:
+      - headers
+      - tls
+      - cookies
+      - exposed_files
+    nuclei:
+      tags: ["misconfig", "exposure", "ssl"]
+      exclude_tags: ["dos", "fuzz", "bruteforce", "intrusive"]
+    rate_limit: 5
+    timeout_minutes: 5
+
+  full:
+    name: "Full Audit"
+    description: "Comprehensive assessment: passive subdomain discovery, tech profiling, safe Nuclei checks, top ports."
+    subdomains: true
+    port_scan: true
+    custom_checks:
+      - headers
+      - tls
+      - cookies
+      - exposed_files
+    nuclei:
+      tags: ["cve", "misconfig", "exposure", "ssl", "tech", "default-login"]
+      exclude_tags: ["dos", "fuzz", "bruteforce", "intrusive"]
+    rate_limit: 10
+    timeout_minutes: 20
+
+  monitor:
+    name: "Continuous Monitoring"
+    description: "Automated recurring full audit with vulnerability diffing and email alerts."
+    subdomains: true
+    port_scan: true
+    frequency_days: 7
+    nuclei:
+      tags: ["cve", "misconfig", "exposure", "ssl", "tech"]
+      exclude_tags: ["dos", "fuzz", "bruteforce", "intrusive"]
+    rate_limit: 10
+    timeout_minutes: 20

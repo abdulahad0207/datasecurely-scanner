@@ -1,0 +1,32 @@
+# Nuclei Safe Profile Configuration
+# Disallows DoS, high-rate fuzzing, and destructive exploits
+
+include-tags:
+  - misconfig
+  - exposure
+  - ssl
+  - token-spray
+  - default-login
+  - cve
+
+exclude-tags:
+  - dos
+  - fuzz
+  - bruteforce
+  - intrusive
+  - crash
+  - overflow
+
+rate-limit: 10
+bulk-size: 5
+concurrency: 5
+timeout: 10
+retries: 1
+max-host-error: 10
+stop-at-first-match: false
+stream: false
+project: false
+stats: false
+no-meta: false
+stream: false
+validate: true

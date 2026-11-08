@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="{{ language if language == 'en' else 'hi' }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Security Scan Report - {{ hostname }} | datasecurely</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --bg-page: #ffffff;
+      --bg-subtle: #f8fafc;
+      --border-color: #e2e8f0;
+      --sev-critical: #ef4444;
+      --sev-critical-bg: #fef2f2;
+      --sev-high: #f97316;
+      --sev-high-bg: #fff7ed;
+      --sev-medium: #f59e0b;
+      --sev-medium-bg: #fffbeb;
+      --sev-low: #3b82f6;
+      --sev-low-bg: #eff6ff;
+      --sev-info: #64748b;
+      --sev-info-bg: #f1f5f9;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      color: var(--text-main);
+      background-color: var(--bg-page);
+      line-height: 1.5;
+      font-size: 14px;
+      padding: 24px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    .report-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 20px;
+      border-bottom: 2px solid var(--border-color);
+      margin-bottom: 24px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-weight: 800;
+      font-size: 20px;
+    }
+
+    .brand-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #0f172a;
+      letter-spacing: -0.5px;
+    }
+
+    .brand-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .report-meta {
+      text-align: right;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .report-meta strong {
+      color: var(--text-main);
+    }
+
+    /* Executive Score Banner */
+    .executive-card {
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+      display: flex;
+      gap: 24px;
+      align-items: center;
+    }
+
+    .grade-badge-wrap {
+      flex-shrink: 0;
+      text-align: center;
+    }
+
+    .grade-badge {
+      width: 88px;
+      height: 88px;
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      color: #ffffff;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    .grade-badge.grade-A { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+    .grade-badge.grade-B { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); }
+    .grade-badge.grade-C { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+    .grade-badge.grade-D { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); }
+    .grade-badge.grade-F { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
+
+    .grade-letter {
+      font-size: 42px;
+      line-height: 1;
+    }
+
+    .grade-score {
+      font-size: 11px;
+      font-weight: 600;
+      opacity: 0.9;
+    }
+
+    .executive-details {
+      flex-grow: 1;
+    }
+
+    .target-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 6px;
+    }
+
+    .grade-description {
+      font-size: 14px;
+      color: #334155;
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+
+    .severity-counts-bar {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .sev-pill {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid transparent;
+    }
+
+    .sev-pill.critical { background: var(--sev-critical-bg); color: var(--sev-critical); border-color: #fecaca; }
+    .sev-pill.high { background: var(--sev-high-bg); color: var(--sev-high); border-color: #ffedd5; }
+    .sev-pill.medium { background: var(--sev-medium-bg); color: var(--sev-medium); border-color: #fef3c7; }
+    .sev-pill.low { background: var(--sev-low-bg); color: var(--sev-low); border-color: #dbeafe; }
+    .sev-pill.info { background: var(--sev-info-bg); color: var(--sev-info); border-color: #e2e8f0; }
+
+    /* Sections */
+    .section-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: #1e293b;
+      margin: 28px 0 14px 0;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Executive Summary Box */
+    .summary-box {
+      background: #f0fdf4;
+      border-left: 4px solid #16a34a;
+      padding: 16px;
+      border-radius: 4px;
+      font-size: 14px;
+      color: #166534;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    /* Top Actions */
+    .top-actions-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .top-action-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 12px 16px;
+    }
+
+    .action-number {
+      background: #2563eb;
+      color: #ffffff;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .action-text {
+      font-size: 13.5px;
+      font-weight: 500;
+      color: #1e293b;
+    }
+
+    /* Findings List */
+    .finding-card {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      page-break-inside: avoid;
+    }
+
+    .finding-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .finding-title-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .finding-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    .finding-meta {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-family: monospace;
+      margin-bottom: 10px;
+    }
+
+    .finding-field {
+      margin-top: 10px;
+    }
+
+    .field-label {
+      font-size: 11.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #475569;
+      margin-bottom: 3px;
+    }
+
+    .field-content {
+      font-size: 13px;
+      color: #334155;
+      line-height: 1.5;
+    }
+
+    .fix-steps-list {
+      margin-left: 20px;
+      margin-top: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .fix-step-item {
+      font-size: 13px;
+      color: #1e293b;
+    }
+
+    .code-evidence {
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+      margin-top: 6px;
+    }
+
+    .finding-badges-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .small-badge {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 500;
+      background: #f1f5f9;
+      color: #475569;
+    }
+
+    /* Footer */
+    .report-footer {
+      margin-top: 40px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* Print styles */
+    @media print {
+      body {
+        padding: 0;
+        font-size: 12px;
+      }
+      .container {
+        max-width: 100%;
+      }
+      .executive-card {
+        background: #f8fafc !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .grade-badge, .sev-pill, .action-number {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .finding-card {
+        page-break-inside: avoid;
+        margin-bottom: 12px;
+      }
+      .page-break {
+        page-break-before: always;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="report-header">
+      <div class="brand">
+        <div class="brand-logo">🛡️</div>
+        <div>
+          <div class="brand-title">datasecurely Scanner</div>
+          <div class="brand-subtitle">AI-Assisted Website Security Assessment</div>
+        </div>
+      </div>
+      <div class="report-meta">
+        <div><strong>Scan ID:</strong> {{ scan_id }}</div>
+        <div><strong>Date:</strong> {{ scan_date }}</div>
+        <div><strong>Language:</strong> {{ 'English' if language == 'en' else 'Hinglish (Hindi-English)' }}</div>
+      </div>
+    </header>
+
+    <!-- Executive Score Banner -->
+    <section class="executive-card">
+      <div class="grade-badge-wrap">
+        <div class="grade-badge grade-{{ grade }}">
+          <div class="grade-letter">{{ grade }}</div>
+          <div class="grade-score">{{ score }}/100</div>
+        </div>
+      </div>
+      <div class="executive-details">
+        <h1 class="target-title">{{ hostname }}</h1>
+        <div class="grade-description">
+          {{ summary.grade_rationale if summary else 'Automated security posture assessment.' }}
+        </div>
+        <div class="severity-counts-bar">
+          <span class="sev-pill critical">{{ severity_counts.critical }} Critical</span>
+          <span class="sev-pill high">{{ severity_counts.high }} High</span>
+          <span class="sev-pill medium">{{ severity_counts.medium }} Medium</span>
+          <span class="sev-pill low">{{ severity_counts.low }} Low</span>
+          <span class="sev-pill info">{{ severity_counts.info }} Info</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Executive Summary -->
+    {% if summary and summary.executive_summary %}
+    <h2 class="section-title">
+      {% if language == 'hi-Latn' %}
+        Executive Summary (Sankshep)
+      {% else %}
+        Executive Summary
+      {% endif %}
+    </h2>
+    <div class="summary-box">
+      {{ summary.executive_summary }}
+    </div>
+    {% endif %}
+
+    <!-- Top Remediation Actions -->
+    {% if summary and summary.top_actions %}
+    <h2 class="section-title">
+      {% if language == 'hi-Latn' %}
+        Turant Karne Wale Kaam (Top Actions)
+      {% else %}
+        Immediate Priority Actions
+      {% endif %}
+    </h2>
+    <ol class="top-actions-list">
+      {% for action in summary.top_actions %}
+      <li class="top-action-item">
+        <div class="action-number">{{ loop.index }}</div>
+        <div class="action-text">{{ action }}</div>
+      </li>
+      {% endfor %}
+    </ol>
+    {% endif %}
+
+    <!-- Detailed Findings -->
+    <h2 class="section-title">
+      {% if language == 'hi-Latn' %}
+        Security Findings & Solutions (Vistrit Report)
+      {% else %}
+        Security Findings & Step-by-Step Fixes
+      {% endif %}
+      ({{ findings|length }})
+    </h2>
+
+    {% if findings|length == 0 %}
+    <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 20px; border-radius: 8px; text-align: center; color: #166534; font-weight: 500;">
+      No security misconfigurations or exposed files were detected during this scan. Great job!
+    </div>
+    {% else %}
+      {% for f in findings %}
+      <div class="finding-card">
+        <div class="finding-header">
+          <div class="finding-title-group">
+            <span class="sev-pill {{ f.severity }}">{{ f.severity|upper }}</span>
+            <span class="finding-title">{{ f.title }}</span>
+          </div>
+          {% if f.ai_json and f.ai_json.priority %}
+          <span class="small-badge" style="background: #eff6ff; color: #1d4ed8; font-weight: 600;">Priority #{{ f.ai_json.priority }}</span>
+          {% endif %}
+        </div>
+
+        <div class="finding-meta">
+          Endpoint: {{ f.host }} &bull; Check ID: {{ f.template_id }} &bull; Source: {{ f.source_tool }}
+        </div>
+
+        {% if f.ai_json and f.ai_json.plain_summary %}
+        <div class="finding-field">
+          <div class="field-label">{% if language == 'hi-Latn' %}Samasya Kya Hai? (Plain Explanation){% else %}What is this issue?{% endif %}</div>
+          <div class="field-content">{{ f.ai_json.plain_summary }}</div>
+        </div>
+        {% endif %}
+
+        {% if f.ai_json and f.ai_json.business_impact %}
+        <div class="finding-field">
+          <div class="field-label">{% if language == 'hi-Latn' %}Business Par Asar (Business Impact){% else %}Business & Security Impact{% endif %}</div>
+          <div class="field-content">{{ f.ai_json.business_impact }}</div>
+        </div>
+        {% endif %}
+
+        {% if f.ai_json and f.ai_json.fix_steps %}
+        <div class="finding-field">
+          <div class="field-label">{% if language == 'hi-Latn' %}Ise Kaise Theek Karein? (Remediation Steps){% else %}How to fix this issue{% endif %}</div>
+          <ol class="fix-steps-list">
+            {% for step in f.ai_json.fix_steps %}
+            <li class="fix-step-item">{{ step }}</li>
+            {% endfor %}
+          </ol>
+        </div>
+        {% endif %}
+
+        {% if f.evidence %}
+        <div class="finding-field">
+          <div class="field-label">Technical Evidence</div>
+          <div class="code-evidence">{{ f.evidence }}</div>
+        </div>
+        {% endif %}
+
+        <div class="finding-badges-row">
+          {% if f.ai_json and f.ai_json.effort %}
+          <span class="small-badge">Effort: {{ f.ai_json.effort|title }}</span>
+          {% endif %}
+          {% if f.ai_json and f.ai_json.confidence %}
+          <span class="small-badge">Confidence: {{ (f.ai_json.confidence * 100)|round|int }}%</span>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    {% endif %}
+
+    <!-- Footer -->
+    <footer class="report-footer">
+      <div>Generated by <strong>datasecurely Scanner</strong> &bull; Confidential Assessment</div>
+      <div>Strictly for verified domain owner &bull; www.datasecurely.com</div>
+    </footer>
+  </div>
+</body>
+</html>

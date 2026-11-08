@@ -1,0 +1,41 @@
+FROM python:3.12-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app
+
+WORKDIR /app
+
+# Install system utilities and nmap
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    ca-certificates \
+    nmap \
+    unzip \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install ProjectDiscovery CLI tools (httpx, subfinder, nuclei)
+ARG TARGETARCH=amd64
+RUN ARCH=${TARGETARCH:-amd64} && \
+    curl -sL https://github.com/projectdiscovery/httpx/releases/download/v1.6.8/httpx_1.6.8_linux_${ARCH}.zip -o /tmp/httpx.zip && \
+    unzip -q /tmp/httpx.zip -d /usr/local/bin httpx && \
+    rm /tmp/httpx.zip && \
+    curl -sL https://github.com/projectdiscovery/subfinder/releases/download/v2.6.6/subfinder_2.6.6_linux_${ARCH}.zip -o /tmp/subfinder.zip && \
+    unzip -q /tmp/subfinder.zip -d /usr/local/bin subfinder && \
+    rm /tmp/subfinder.zip && \
+    curl -sL https://github.com/projectdiscovery/nuclei/releases/download/v3.3.4/nuclei_3.3.4_linux_${ARCH}.zip -o /tmp/nuclei.zip && \
+    unzip -q /tmp/nuclei.zip -d /usr/local/bin nuclei && \
+    rm /tmp/nuclei.zip && \
+    chmod +x /usr/local/bin/httpx /usr/local/bin/subfinder /usr/local/bin/nuclei
+
+# Install python dependencies
+COPY backend/pyproject.toml ./
+RUN pip install --no-cache-dir pip --upgrade && \
+    pip install --no-cache-dir .
+
+# Copy application code
+COPY backend/app ./app
+COPY config ./config
+COPY shared ./shared
+
+CMD ["python", "-m", "app.worker.main"]

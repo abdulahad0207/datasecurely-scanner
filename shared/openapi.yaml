@@ -1,0 +1,40 @@
+openapi: 3.1.0
+info:
+  title: datasecurely Scanner API
+  description: One-click AI-assisted security scanner API for Indian SMBs
+  version: 1.0.0
+paths:
+  /health:
+    get:
+      summary: Health Check
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  service:
+                    type: string
+                    example: api
+  /api/v1/domains:
+    get:
+      summary: List user domains
+      responses:
+        '200':
+          description: OK
+    post:
+      summary: Add domain for ownership verification
+      responses:
+        '201':
+          description: Domain added
+  /api/v1/scans:
+    post:
+      summary: Enqueue a security scan
+      responses:
+        '202':
+          description: Scan queued

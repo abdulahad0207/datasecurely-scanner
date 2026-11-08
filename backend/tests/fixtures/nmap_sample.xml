@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE nmaprun>
+<nmaprun scanner="nmap" args="nmap -sT -Pn --top-ports 20 -oX - example.com" start="1731034800" version="7.94">
+<host starttime="1731034800" endtime="1731034805">
+<status state="up" reason="syn-ack"/>
+<address addr="93.184.216.34" addrtype="ipv4"/>
+<hostnames>
+<hostname name="example.com" type="user"/>
+</hostnames>
+<ports>
+<port protocol="tcp" portid="80"><state state="open" reason="syn-ack" reason_ttl="0"/><service name="http" method="table" conf="3"/></port>
+<port protocol="tcp" portid="443"><state state="open" reason="syn-ack" reason_ttl="0"/><service name="https" method="table" conf="3"/></port>
+<port protocol="tcp" portid="22"><state state="closed" reason="conn-refused" reason_ttl="0"/><service name="ssh" method="table" conf="3"/></port>
+</ports>
+</host>
+<runstats><finished time="1731034805" timestr="Sun Nov 08 03:00:05 2026" summary="Nmap done at Sun Nov 08 03:00:05 2026; 1 IP address (1 host up) scanned in 5.20 seconds" elapsed="5.20" exit="success"/></runstats>
+</nmaprun>
