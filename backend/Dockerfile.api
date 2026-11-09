@@ -13,8 +13,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Install python dependencies
-COPY backend/pyproject.toml ./
+COPY backend/pyproject.toml backend/requirements.txt backend/README.md ./
 RUN pip install --no-cache-dir pip --upgrade && \
+    pip install --no-cache-dir -r requirements.txt && \
     pip install --no-cache-dir .
 
 # Copy application code
